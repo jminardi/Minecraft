@@ -52,10 +52,13 @@ def tex_coords(top, bottom, side):
 
 TEXTURE_PATH = 'texture.png'
 
-GRASS = tex_coords((1, 0), (0, 1), (0, 0))
-SAND = tex_coords((1, 1), (1, 1), (1, 1))
-BRICK = tex_coords((2, 0), (2, 0), (2, 0))
-STONE = tex_coords((2, 1), (2, 1), (2, 1))
+TEXTURE_MAP = dict(
+    grass=tex_coords((1, 0), (0, 1), (0, 0)),
+    sand=tex_coords((1, 1), (1, 1), (1, 1)),
+    brick=tex_coords((2, 0), (2, 0), (2, 0)),
+    stone=tex_coords((2, 1), (2, 1), (2, 1)),
+)
+
 
 FACES = [
     ( 0, 1, 0),
@@ -140,12 +143,12 @@ class Model(object):
         for x in xrange(-n, n + 1, s):
             for z in xrange(-n, n + 1, s):
                 # create a layer stone an grass everywhere.
-                self.init_block((x, y - 2, z), GRASS)
-                self.init_block((x, y - 3, z), STONE)
+                self.init_block((x, y - 2, z), 'grass')
+                self.init_block((x, y - 3, z), 'stone')
                 if x in (-n, n) or z in (-n, n):
                     # create outer walls.
                     for dy in xrange(-2, 3):
-                        self.init_block((x, y + dy, z), STONE)
+                        self.init_block((x, y + dy, z), 'stone')
 
         # generate the hills randomly
         o = n - 10
@@ -156,7 +159,7 @@ class Model(object):
             h = random.randint(1, 6)
             s = random.randint(4, 8)
             d = 1
-            t = random.choice([GRASS, SAND, BRICK])
+            t = random.choice(['grass', 'sand', 'brick'])
             for y in xrange(c, c + h):
                 for x in xrange(a - s, a + s + 1):
                     for z in xrange(b - s, b + s + 1):
@@ -324,7 +327,7 @@ class Model(object):
         index = 0
         count = 24
         vertex_data = cube_vertices(x, y, z, 0.5)
-        texture_data = list(texture)
+        texture_data = TEXTURE_MAP[texture]
         for dx, dy, dz in []:  # FACES:
             # FIXME This block never gets called.
             if (x + dx, y + dy, z + dz) in self.world:
@@ -472,7 +475,7 @@ class Window(pyglet.window.Window):
         self.dy = 0
 
         # A list of blocks the player can place. Hit num keys to cycle.
-        self.inventory = [BRICK, GRASS, SAND]
+        self.inventory = ['brick', 'grass', 'sand']
 
         # The current block the user can place. Hit num keys to cycle.
         self.block = self.inventory[0]
@@ -669,7 +672,7 @@ class Window(pyglet.window.Window):
             if button == pyglet.window.mouse.LEFT:
                 if block:
                     texture = self.model.world[block]
-                    if texture != STONE:
+                    if texture != 'stone':
                         self.model.remove_block(block)
             else:
                 if previous:
